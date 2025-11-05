@@ -68,7 +68,6 @@ Token expect(Token want, const char* msg)
 // Helpers
 // -----------------------------------------------------------------------------
 static inline bool accept(Token t) { if (peek() == t) { nextTok(); return true; } return false; }
-static inline void consume_if(Token t) { if (peek() == t) nextTok(); }
 
 // TODO: implement parsing functions for each grammar in your language
 
@@ -145,7 +144,6 @@ static unique_ptr<Statement> parseWriteStmt() {
   } else {
     throw runtime_error("Parse error: expected STRINGLIT or IDENT inside WRITE(...)");
   }
-  consume_if(SEMICOLON);
   return stmt;
 }
 
@@ -157,14 +155,12 @@ static unique_ptr<Statement> parseReadStmt() {
     throw runtime_error("Parse error: READ of undeclared identifier " + id);
   }
   expect(IDENT, "identifier to READ into");
-  consume_if(SEMICOLON);
   return make_unique<ReadStmt>(id);
 }
 
 static unique_ptr<Statement> parseAssignStmtWithLeadingIdent(const string& firstIdent) {
   expect(ASSIGN, "expected ':=' after identifier");
   auto rhs = parseValue();
-  consume_if(SEMICOLON);
   return make_unique<AssignStmt>(firstIdent, std::move(rhs));
 }
 
@@ -206,7 +202,7 @@ static unique_ptr<Statement> parseCompound() {
 // block → BEGIN write END
 unique_ptr<Block> parseBlock() {
   auto b = make_unique<Block>();
-  parseDeclarations(b->decls);  // consume_if VAR ... ; ...
+  parseDeclarations(b->decls);  
   b->body = unique_ptr<CompoundStmt>(
       static_cast<CompoundStmt*>(parseCompound().release())
   );
